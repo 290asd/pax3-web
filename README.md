@@ -27,6 +27,8 @@ the original encryption work.
 | Android | Chrome |
 | iOS / iPadOS | Bluefy browser (Safari has no Web Bluetooth) |
 
+Tested on a real PAX 3 on Windows and iOS.
+
 Firefox does not support Web Bluetooth. On Linux you may need to enable
 `chrome://flags/#enable-experimental-web-platform-features`.
 
