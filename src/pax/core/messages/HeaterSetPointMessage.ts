@@ -23,6 +23,13 @@ export class HeaterSetPointMessage extends ReadAndWriteTemperatureMessage {
     return new HeaterSetPointMessage(builder);
   }
 
+  static createWithRaw(raw: number): HeaterSetPointMessage {
+    const packet = new PaxDecryptedPacket(new ArrayBuffer(16));
+    packet.setUint8(0, Messages.ATTRIBUTE_HEATER_SET_POINT);
+    packet.setUint16(1, raw, true);
+    return HeaterSetPointMessage.createWithPacket(packet);
+  }
+
   static createWithTemperature(temperature: number): HeaterSetPointMessage {
     const builder =
       new ReadAndWriteTemperatureMessageBuilderFromTemperature<HeaterSetPointMessage>();

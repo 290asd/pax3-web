@@ -11,3 +11,6 @@ export * from './BatteryPercentageMessage';
 export * from './BrightnessMessage';
 export * from './RequestStatusMessage';
 export * from './HapticsMessage';
+export * from './BytesMessage';
+export * from './DeviceNameMessage';
+export * from './dynamicMode';

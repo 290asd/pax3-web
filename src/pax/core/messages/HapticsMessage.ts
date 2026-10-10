@@ -57,7 +57,7 @@ export class HapticsMessage
 
   static createWithHaptics(percentage: number): HapticsMessage {
     const builder = new HapticsMessageBuilderFromValue<HapticsMessage>();
-    builder.setBrightness(percentage);
+    builder.setHaptics(percentage);
     return new HapticsMessage(builder);
   }
 }
@@ -88,7 +88,7 @@ export class HapticsMessageBuilderFromPacket<T extends HapticsMessage> {
 export class HapticsMessageBuilderFromValue<T extends HapticsMessage> {
   private percentage?: number;
 
-  setBrightness(percentage: number): HapticsMessageBuilderFromValue<T> {
+  setHaptics(percentage: number): HapticsMessageBuilderFromValue<T> {
     this.percentage = percentage;
     return this;
   }

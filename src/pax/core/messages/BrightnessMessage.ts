@@ -12,7 +12,8 @@ export class BrightnessMessage
   readonly messageType: Messages;
   readonly packet: PaxDecryptedPacket;
 
-  readonly PaxBrightnessMin = 0;
+  // The official app maps 0–100 % to 5–128 on PAX 3.
+  readonly PaxBrightnessMin = 5;
   readonly PaxBrightnessMax = 128;
 
   constructor(
@@ -42,14 +43,18 @@ export class BrightnessMessage
   }
 
   private brightnessToPercentage(brightness: number): number {
-    return (
+    return Math.max(
+      0,
       (brightness - this.PaxBrightnessMin) /
-      (this.PaxBrightnessMax - this.PaxBrightnessMin)
+        (this.PaxBrightnessMax - this.PaxBrightnessMin),
     );
   }
 
   private brightnessToAbsolute(brightness: number): number {
-    return brightness * (this.PaxBrightnessMax - this.PaxBrightnessMin);
+    return Math.round(
+      this.PaxBrightnessMin +
+        brightness * (this.PaxBrightnessMax - this.PaxBrightnessMin),
+    );
   }
 
   static createWithPacket(packet: PaxDecryptedPacket): BrightnessMessage {
@@ -97,14 +102,14 @@ export class BrightnessMessageBuilderFromValue<T extends BrightnessMessage> {
   }
 
   getBrightness(): number {
-    if (!this.brightness) {
-      throw new Error('Theme is not set');
+    if (this.brightness === undefined) {
+      throw new Error('Brightness is not set');
     }
     return this.brightness;
   }
 
   build(ctor: new (builder: BrightnessMessageBuilderFromValue<T>) => T): T {
-    if (!this.brightness) {
+    if (this.brightness === undefined) {
       throw new Error('Brightness is not set');
     }
     return new ctor(this);

@@ -1,18 +1,20 @@
 import { Messages } from '../../shared/enums/Messages';
 import { PaxDecryptedPacket } from '../../shared/models/Packet';
+import { celsiusToRaw, rawToCelsius } from '../../shared/utils/pax3Temperature';
 import { InvalidPacketTypeException } from '../exceptions';
 import { MessageAbs } from './MessageAbs';
 import { ReadAndWriteMessageAbs } from './ReadAndWriteMessageAbs';
 
 export class ReadOnlyTemperatureMessage implements MessageAbs {
+  readonly raw: number;
   readonly temperature: number;
   readonly messageType: Messages;
   readonly packet: PaxDecryptedPacket;
 
   constructor(messageType: Messages, packet: PaxDecryptedPacket) {
     this.validatePacket(packet);
-    const temperature = packet.getUint16(1, true) / 10.0;
-    this.temperature = temperature;
+    this.raw = packet.getUint16(1, true);
+    this.temperature = rawToCelsius(this.raw);
     this.messageType = messageType;
     this.packet = packet;
   }
@@ -28,6 +30,7 @@ export abstract class ReadAndWriteTemperatureMessage
   extends ReadAndWriteMessageAbs
   implements MessageAbs
 {
+  readonly raw: number;
   readonly temperature: number;
   readonly messageType: Messages;
   readonly packet: PaxDecryptedPacket;
@@ -43,18 +46,19 @@ export abstract class ReadAndWriteTemperatureMessage
     if (builder instanceof ReadAndWriteTemperatureMessageBuilderFromPacket) {
       // infer temperature and packet
       this.packet = builder.getPacket();
-      this.temperature = this.packet.getUint16(1, true) / 10.0;
+      this.raw = this.packet.getUint16(1, true);
+      this.temperature = rawToCelsius(this.raw);
     } else if (
       builder instanceof ReadAndWriteTemperatureMessageBuilderFromTemperature
     ) {
       // infer packet from temperature
-      // TODO: temperature should be  temp >= 175, temp <= 215
       this.temperature = builder.getTemperature();
+      this.raw = celsiusToRaw(this.temperature);
       const buffer = new ArrayBuffer(16);
       const view = new PaxDecryptedPacket(buffer);
       // sets message type and message content
       view.setUint8(0, this.messageType);
-      view.setUint16(1, Math.round(this.temperature * 10), true);
+      view.setUint16(1, this.raw, true);
       this.packet = view;
     } else {
       throw new Error('Invalid builder');
@@ -112,7 +116,7 @@ export class ReadAndWriteTemperatureMessageBuilderFromTemperature<
   }
 
   getTemperature(): number {
-    if (!this.temperature) {
+    if (this.temperature === undefined) {
       throw new Error('Temperature is not set');
     }
     return this.temperature;
@@ -123,7 +127,7 @@ export class ReadAndWriteTemperatureMessageBuilderFromTemperature<
       builder: ReadAndWriteTemperatureMessageBuilderFromTemperature<T>,
     ) => T,
   ): T {
-    if (!this.temperature) {
+    if (this.temperature === undefined) {
       throw new Error('Temperature is not set');
     }
     return new ctor(this);

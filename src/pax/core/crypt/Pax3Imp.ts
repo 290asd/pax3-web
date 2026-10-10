@@ -15,6 +15,9 @@ export class Pax3Imp extends PaxAbs {
     const key = buildKey(this.paxSerial.serial);
     const iv = CryptoJS.lib.WordArray.random(this.ivLenght);
     const WaPacket = CryptoJS.enc.Hex.parse(packet.toHex());
+    // The official app pads every write to whole 16-byte blocks with random bytes.
+    const padLength = (16 - (WaPacket.sigBytes % 16)) % 16;
+    if (padLength) WaPacket.concat(CryptoJS.lib.WordArray.random(padLength));
     const result = this.encryptAESOFB(WaPacket, key, iv);
 
     const hexResult = result.ciphertext.toString(CryptoJS.enc.Hex);
