@@ -19,13 +19,13 @@ const Navbar = () => {
         onOpenChange={openDevicesModal as () => void}
       />
       <div
-        className="mx-auto flex h-16 w-screen items-center border-b 
+        className="mx-auto flex h-16 w-full items-center border-b 
         border-neutral-300 bg-white px-6 dark:border-neutral-800 dark:bg-black"
       >
         <div className="flex items-center gap-3">
           <Cloudy size={40} />
           <h1 className="select-none scroll-m-20 font-extrabold tracking-tight md:text-4xl">
-            Pax Romana
+            PAX 3 Web
           </h1>
         </div>
         <div className="flex-grow bg-white"></div>

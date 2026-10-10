@@ -2,8 +2,8 @@ import { PaxActions } from './actions';
 import { PaxState } from './types';
 
 export const initialPaxState: PaxState = {
-  actualTemperature: 0,
-  heaterSetPointTemperature: 0,
+  actualTemperatureRaw: 0,
+  heaterSetPointRaw: 0,
   heatingSate: undefined,
   colorTheme: undefined,
   batteryPercentage: undefined,
@@ -14,9 +14,9 @@ export const initialPaxState: PaxState = {
 const reducer = (state: PaxState, action: PaxActions): PaxState => {
   switch (action.type) {
     case 'SET_ACTUAL_TEMPERATURE':
-      return { ...state, actualTemperature: action.payload };
+      return { ...state, actualTemperatureRaw: action.payload };
     case 'SET_HEATER_SETPOINT_TEMPERATURE':
-      return { ...state, heaterSetPointTemperature: action.payload };
+      return { ...state, heaterSetPointRaw: action.payload };
     case 'SET_HEATING_STATE':
       return { ...state, heatingSate: action.payload };
     case 'SET_COLOR_THEME':
@@ -27,6 +27,8 @@ const reducer = (state: PaxState, action: PaxActions): PaxState => {
       return { ...state, brightness: action.payload };
     case 'SET_HAPTICS':
       return { ...state, haptics: action.payload };
+    case 'SET_FIELDS':
+      return { ...state, ...action.payload };
     case 'RESET_PAX_STATE':
       return initialPaxState;
     default:

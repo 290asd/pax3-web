@@ -26,7 +26,7 @@ export function Connect(props: IConnectProps) {
         <BluetoothIcon className="h-4 w-4" />
         <AlertTitle>Pairing mode</AlertTitle>
         <AlertDescription>
-          Shake your device ultil you see the blue light.
+          Shake your PAX until the LEDs pulse blue, then connect.
         </AlertDescription>
       </Alert>
     </div>

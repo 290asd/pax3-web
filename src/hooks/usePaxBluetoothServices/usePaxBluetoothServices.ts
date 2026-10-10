@@ -1,5 +1,5 @@
 import { Pax } from '@/pax';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useRef } from 'react';
 
 import { PaxBluetoothCharacteristics } from './enums/PaxBluetoothCharacteristics';
 import { PaxBluetoothServices } from './enums/PaxBluetoothServices';
@@ -29,15 +29,18 @@ export const usePaxBluetoothServices = (
     addCharacteristicListener,
     writeToCharacteristic,
   } = useBluetooth(
-    serial.device,
     PaxBluetoothServices.MainService,
     Object.values(PaxBluetoothServices),
   );
 
-  const pendingPacketsQueue = useMemo<Pax.lib.PaxEncryptedPacket[]>(
-    () => [],
-    [],
-  );
+  // Web Bluetooth rejects overlapping GATT operations, so every read and
+  // write goes through one promise chain.
+  const gattQueue = useRef<Promise<unknown>>(Promise.resolve());
+  const enqueue = useCallback(<T>(operation: () => Promise<T>): Promise<T> => {
+    const result = gattQueue.current.then(operation);
+    gattQueue.current = result.catch(() => undefined);
+    return result;
+  }, []);
 
   const startListening = useCallback(
     (callback: (event: Event) => void): Promise<void> => {
@@ -54,47 +57,28 @@ export const usePaxBluetoothServices = (
 
   const readFromMainService =
     useCallback(async (): Promise<Pax.lib.messages.MessageAbs> => {
-      return readFromCharacteristic(
-        PaxBluetoothServices.MainService,
-        PaxBluetoothCharacteristics.Read,
-      ).then(response => {
-        const decodedMessage = Pax.api.get(
-          new Pax.lib.PaxEncryptedPacket(response.buffer),
-          serial,
-        );
-        return decodedMessage.message;
-      });
-    }, [readFromCharacteristic, serial]);
-
-  const writeToMainServiceQueue = useCallback(async (): Promise<void> => {
-    if (!pendingPacketsQueue.length) return;
-
-    const packet = pendingPacketsQueue.shift();
-    if (!packet) return;
-
-    try {
-      await writeToCharacteristic(
-        PaxBluetoothServices.MainService,
-        PaxBluetoothCharacteristics.Write,
-        packet,
+      const response = await enqueue(() =>
+        readFromCharacteristic(
+          PaxBluetoothServices.MainService,
+          PaxBluetoothCharacteristics.Read,
+        ),
       );
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error writing to Pax device:', error);
-      // Implement retry logic here (e.g., retry a limited number of times)
-    } finally {
-      if (pendingPacketsQueue.length) {
-        void writeToMainServiceQueue();
-      }
-    }
-  }, [pendingPacketsQueue, writeToCharacteristic]);
+      return Pax.api.get(
+        new Pax.lib.PaxEncryptedPacket(response.buffer),
+        serial,
+      ).message;
+    }, [enqueue, readFromCharacteristic, serial]);
 
   const writeToMainService = useCallback(
-    (packet: Pax.lib.PaxEncryptedPacket): Promise<void> => {
-      pendingPacketsQueue.push(packet);
-      return writeToMainServiceQueue();
-    },
-    [pendingPacketsQueue, writeToMainServiceQueue],
+    (packet: Pax.lib.PaxEncryptedPacket): Promise<void> =>
+      enqueue(() =>
+        writeToCharacteristic(
+          PaxBluetoothServices.MainService,
+          PaxBluetoothCharacteristics.Write,
+          packet,
+        ),
+      ),
+    [enqueue, writeToCharacteristic],
   );
 
   return {

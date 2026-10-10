@@ -65,7 +65,6 @@ const parseErrors = (error: unknown): void => {
 };
 
 const useBluetooth = (
-  device: string,
   primaryService: string,
   optionalServices: string[],
 ): BluetoothHookState => {
@@ -79,11 +78,8 @@ const useBluetooth = (
   const connect = async () => {
     try {
       const btDevice = await navigator.bluetooth.requestDevice({
-        filters: [
-          {
-            namePrefix: device,
-          },
-        ],
+        // Filter by service, not name: a renamed device advertises its new name.
+        filters: [{ services: [primaryService] }],
         optionalServices: optionalServices,
       });
 
@@ -160,9 +156,9 @@ const useBluetooth = (
         const service = await server.getPrimaryService(serviceUUID);
         const characteristic =
           await service.getCharacteristic(characteristicUUID);
-        // use writeValueWithoutResponse instead
-        await characteristic.writeValueWithoutResponse(value.buffer);
-        // await characteristic.writeValue(value);
+        // The official app writes with response (WRITE_TYPE_DEFAULT). Windows
+        // and Linux reject writeValueWithoutResponse on this characteristic.
+        await characteristic.writeValueWithResponse(value.buffer);
       } catch (error) {
         parseErrors(error);
         throw new BluetoothUnknownException(String(error));

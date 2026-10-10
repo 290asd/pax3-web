@@ -1,6 +1,7 @@
 import { usePaxContext } from '@/state/hooks';
 import {
   Battery,
+  BatteryCharging,
   BatteryFull,
   BatteryLow,
   BatteryMedium,
@@ -11,13 +12,18 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export function BatteryIndicator() {
   const { state } = usePaxContext();
+  const charging = (state.chargeStatus ?? 0) & 1;
+  const charged = (state.chargeStatus ?? 0) & 16;
   const tooltipContent = state.batteryPercentage
-    ? `${state.batteryPercentage}%`
+    ? `${state.batteryPercentage}%${charged ? ', charged' : charging ? ', charging' : ''}`
     : 'Disconnected';
 
   const getIcon = () => {
     if (!state.batteryPercentage) {
       return <Unplug />;
+    }
+    if (charging) {
+      return <BatteryCharging />;
     }
     if (state.batteryPercentage < 25) {
       return <Battery />;

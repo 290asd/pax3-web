@@ -11,11 +11,11 @@ export const PageLayout = ({ children }: Props) => {
     <div
       // eslint-disable-next-line react/no-unknown-property
       vaul-drawer-wrapper=""
-      className="flex h-screen w-screen flex-col"
+      className="flex min-h-screen w-full flex-col"
     >
       <Navbar />
       <div
-        className="flex w-screen grow items-center justify-center bg-neutral-100 
+        className="flex w-full grow items-center justify-center bg-neutral-100 
       dark:bg-black"
       >
         {children}

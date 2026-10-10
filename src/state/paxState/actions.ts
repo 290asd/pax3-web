@@ -1,5 +1,7 @@
 import { Pax } from '@/pax';
 
+import { PaxState } from './types';
+
 export type PaxActions =
   | { type: 'SET_ACTUAL_TEMPERATURE'; payload: number }
   | { type: 'SET_HEATER_SETPOINT_TEMPERATURE'; payload: number }
@@ -8,6 +10,7 @@ export type PaxActions =
   | { type: 'SET_BATTERY_PERCENTAGE'; payload: number }
   | { type: 'SET_BRIGHTNESS'; payload: number }
   | { type: 'SET_HAPTICS'; payload: number }
+  | { type: 'SET_FIELDS'; payload: Partial<PaxState> }
   | { type: 'RESET_PAX_STATE' };
 
 export interface BuiltPaxActions {
@@ -18,6 +21,7 @@ export interface BuiltPaxActions {
   setBatteryPercentage: (percentage: number) => void;
   setBrightness: (brightness: number) => void;
   setHaptics: (haptics: number) => void;
+  setFields: (fields: Partial<PaxState>) => void;
   resetPaxState: () => void;
 }
 
@@ -88,6 +92,8 @@ export const buildActions = (
       setColorTheme(dispatch, theme),
     setBatteryPercentage: (percentage: number) =>
       setBatteryPercentage(dispatch, percentage),
+    setFields: (fields: Partial<PaxState>) =>
+      dispatch({ type: 'SET_FIELDS', payload: fields }),
     resetPaxState: () => resetPaxState(dispatch),
     setBrightness: (brightness: number) => setBrightness(dispatch, brightness),
     setHaptics: (haptics: number) => setHaptics(dispatch, haptics),
